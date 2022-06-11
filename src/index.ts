@@ -1,19 +1,23 @@
-import { sign, verify } from "@octokit/webhooks-methods";
-
 import { createLogger } from "./createLogger";
 import { createEventHandler } from "./event-handler/index";
+import { sign } from "./sign";
+import { verify } from "./verify";
 import { verifyAndReceive } from "./verify-and-receive";
 import {
   EmitterWebhookEvent,
   EmitterWebhookEventName,
   HandlerFunction,
+  RemoveHandlerFunction,
   Options,
   State,
   WebhookError,
   WebhookEventHandlerError,
+  EmitterWebhookEventWithStringPayloadAndSignature,
+  EmitterWebhookEventWithSignature,
 } from "./types";
 
 export { createNodeMiddleware } from "./middleware/node/index";
+export { emitterEventNames } from "./generated/webhook-names";
 
 // U holds the return value of `transform` function in Options
 class Webhooks<TTransformed = unknown> {
@@ -28,13 +32,15 @@ class Webhooks<TTransformed = unknown> {
   ) => void;
   public onAny: (callback: (event: EmitterWebhookEvent) => any) => void;
   public onError: (callback: (event: WebhookEventHandlerError) => any) => void;
-  public removeListener: <E extends EmitterWebhookEventName>(
+  public removeListener: <E extends EmitterWebhookEventName | "*">(
     event: E | E[],
-    callback: HandlerFunction<E, TTransformed>
+    callback: RemoveHandlerFunction<E, TTransformed>
   ) => void;
   public receive: (event: EmitterWebhookEvent) => Promise<void>;
   public verifyAndReceive: (
-    options: EmitterWebhookEvent & { signature: string }
+    options:
+      | EmitterWebhookEventWithStringPayloadAndSignature
+      | EmitterWebhookEventWithSignature
   ) => Promise<void>;
 
   constructor(options: Options<TTransformed> & { secret: string }) {
@@ -60,4 +66,10 @@ class Webhooks<TTransformed = unknown> {
   }
 }
 
-export { createEventHandler, Webhooks, EmitterWebhookEvent, WebhookError };
+export {
+  createEventHandler,
+  Webhooks,
+  EmitterWebhookEvent,
+  EmitterWebhookEventName,
+  WebhookError,
+};

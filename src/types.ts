@@ -15,6 +15,17 @@ export type EmitterWebhookEvent<
     }
   : BaseWebhookEvent<Extract<TEmitterEvent, WebhookEventName>>;
 
+export type EmitterWebhookEventWithStringPayloadAndSignature = {
+  id: string;
+  name: EmitterWebhookEventName;
+  payload: string;
+  signature: string;
+};
+
+export type EmitterWebhookEventWithSignature = EmitterWebhookEvent & {
+  signature: string;
+};
+
 interface BaseWebhookEvent<TName extends WebhookEventName> {
   id: string;
   name: TName;
@@ -33,6 +44,11 @@ export type HandlerFunction<
   TName extends EmitterWebhookEventName,
   TTransformed
 > = (event: EmitterWebhookEvent<TName> & TTransformed) => any;
+
+export type RemoveHandlerFunction<
+  TName extends EmitterWebhookEventName | "*",
+  TTransformed
+> = (event: EmitterWebhookEvent<Exclude<TName, "*">> & TTransformed) => any;
 
 type Hooks = {
   [key: string]: Function[];
